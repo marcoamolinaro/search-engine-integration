@@ -1,7 +1,7 @@
 package br.com.ovd.kafka.integration.model;
 
 import br.com.ovd.kafka.integration.model.source.Product;
-import br.com.ovd.kafka.integration.model.source.StocksList;
+import br.com.ovd.kafka.integration.model.source.StockList;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,5 +13,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProductWithStocks {
     private Product product;
-    private StocksList stocks;
+    private StockList stocks;
 }

@@ -1,9 +1,6 @@
 package br.com.ovd.kafka.integration.model.source;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -11,7 +8,8 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class StocksList {
+@EqualsAndHashCode
+public class StockList {
     private List<Stock> estoques;
     private boolean isChanged = false;
 }

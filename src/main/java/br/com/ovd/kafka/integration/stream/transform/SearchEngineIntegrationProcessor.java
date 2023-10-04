@@ -9,15 +9,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
+import org.jboss.logging.Logger;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @ApplicationScoped
 public class SearchEngineIntegrationProcessor {
 
@@ -25,9 +21,20 @@ public class SearchEngineIntegrationProcessor {
     Logger logger;
 
     @Inject
-    IntegrationConfig config;
+    IntegrationConfig integrationConfig;
 
+    @ApplicationScoped
     public void process(String key, ProductWithStocks value) {
 
+        logger.info("searchEngineUrl = " + integrationConfig.searchEngineUrl());
+        System.out.println("searchEngineUrl = " + integrationConfig.searchEngineUrl());
+
+        for (SiteConfig siteConfig: integrationConfig.sites()) {
+            logger.info("Site " + siteConfig.site());
+            for (String org : siteConfig.orgs()) {
+                logger.info("Org " + org);
+            }
+        }
     }
 }
+
