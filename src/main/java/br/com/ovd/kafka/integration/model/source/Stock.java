@@ -15,5 +15,6 @@ public class Stock {
     private String filial;
     private BigDecimal estoque;
     private String status;
+    private Boolean sobEncomenda;
     private boolean isChanged = false;
 }

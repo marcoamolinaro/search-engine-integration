@@ -1,22 +1,22 @@
 package br.com.ovd.kafka.integration.stream.transform;
 
+import br.com.ovd.kafka.integration.model.CategoryRequest;
 import br.com.ovd.kafka.integration.model.ProductWithStocks;
+import br.com.ovd.kafka.integration.model.SearchEngineIntegrationRequest;
 import br.com.ovd.kafka.integration.model.source.Product;
 import br.com.ovd.kafka.integration.model.source.ProductSite;
 import br.com.ovd.kafka.integration.model.source.Stock;
-import br.com.ovd.kafka.integration.model.source.StockList;
 import br.com.ovd.kafka.integration.stream.config.IntegrationConfig;
 import br.com.ovd.kafka.integration.stream.config.SiteConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.kafka.common.protocol.types.Field;
 import org.jboss.logging.Logger;
 
-import java.util.Optional;
+import java.math.BigDecimal;
+import java.util.*;
 
 @Data
 @AllArgsConstructor
@@ -55,27 +55,88 @@ public class SearchEngineIntegrationProcessor {
                 } else {
 
                     String product_id = key;
-                    String apiKey = siteConfig.key();
-                    String secretKey = siteConfig.secret();
-                    String salesChannel = stock.getFilial();
                     String status =
                             (productSite
                                     .getStatus()
                                     .equalsIgnoreCase("inactive ")
                                     ? "removed" : stock.getStatus());
+
+                    SearchEngineIntegrationRequest request = new SearchEngineIntegrationRequest();
+                    request.setApiKey(siteConfig.key());
+                    request.setSecretKey(siteConfig.secret());
+                    request.setSalesChannel(stock.getFilial());
+                    request.setStatus(status);
+
                     if (value.getProduct().isChanged()) {
-                        // TODO - PUT
-                        // preparar mensagem
-                        // enviar
                         // escrever no log mensagem recebida
+                        logger.info(">> Será executada integração completa <<");
+
+                        // preparar mensagem
+                        request.setName(value.getProduct().getDescricao());
+                        request.setUrl("produtos/" + product_id);
+                        request.setDescription(
+                                value.getProduct().getAplicacoes() + " " +
+                                        value.getProduct().getDestaques());
+
+                        List<CategoryRequest> categoryRequestList = new ArrayList<>();
+
+                        categoryRequestList.add(prepareCategoryRequest(value, false));
+                        categoryRequestList.add(prepareCategoryRequest(value, true));
+                        categoryRequestList.add(prepareCategoryRequest(value, true));
+
+                        request.setPrice(new BigDecimal("0.01"));
+                        request.setBrand(value.getProduct().getMarca());
+
+                        // Mapenado details
+
+                        Map<String, Object> mapDetails = new HashMap<>();
+
+                        mapDetails.put("modelo", value.getProduct().getModelo());
+                        mapDetails.put("referenciaFabricante", value.getProduct().getReferenciaFabricante());
+                        mapDetails.put("codigoProduto", productSite.getCodigoProduto());
+                        mapDetails.put("sobEncomenda", stock.getSobEncomenda());
+
+                        request.setDetails(mapDetails);
+
+                        // Mapeando categories
+                        request.setCategories(categoryRequestList);
+
+                        // Mapeando imagens
+                        Map<String, String> mapImage = new HashMap<>();
+                        mapImage.put("default", key + "_principal.jpg");
+
+                        request.setImage(mapImage);
+
+                        // enviar
+
+
+                        // Registrar log do status recebido
+
                     } else {
                         // TODO - POST
-                        // Enviar parametros gerais
                         // escrever no log mensagem recebida
+                        logger.info(">> Será executado atualização do status do produto <<");
+
+                        // Enviar
+
+                        // Registrar log do status recebido
+
                     }
                 }
             }
         }
+    }
+
+    private CategoryRequest prepareCategoryRequest(ProductWithStocks value, Boolean hasSubGroup) {
+        CategoryRequest categoryRequest = new CategoryRequest();
+        List<String> parents = new ArrayList<>();
+
+        categoryRequest.setId(value.getProduct().getGrupo());
+        categoryRequest.setName(value.getProduct().getGrupo());
+        parents.add((hasSubGroup ? value.getProduct().getSubgrupo() : ""));
+        categoryRequest.setParents(parents);
+
+        return categoryRequest;
     }
 }
 

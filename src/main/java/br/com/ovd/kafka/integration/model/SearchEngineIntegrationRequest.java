@@ -7,11 +7,11 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class SearchEngineIntegrationRequest {
     private String apiKey;
     private String secretKey;
@@ -22,7 +22,7 @@ public class SearchEngineIntegrationRequest {
     private String status;
     private BigDecimal price;
     private String brand;
-    private DetailsRequest details;
+    private Map<String, Object> details;
     private List<CategoryRequest> categories;
-    private ImageRequest image;
+    private Map<String, String> image;
 }
