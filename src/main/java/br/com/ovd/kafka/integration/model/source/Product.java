@@ -20,7 +20,7 @@ public class Product {
     private String modelo;
     private String referenciaFabricante;
     private List<ProductSite> sites;
-    private List<Attribute> filtros;
+    private List<Filtro> filtros;
     private List<Attribute> atributos;
     private boolean isChanged = false;
 }

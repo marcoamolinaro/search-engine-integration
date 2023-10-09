@@ -1,5 +1,6 @@
 package br.com.ovd.kafka.integration.stream.transform;
 
+import br.com.ovd.kafka.integration.client.SearchEngineIntegrationClient;
 import br.com.ovd.kafka.integration.model.CategoryRequest;
 import br.com.ovd.kafka.integration.model.ProductWithStocks;
 import br.com.ovd.kafka.integration.model.SearchEngineIntegrationRequest;
@@ -16,13 +17,24 @@ import lombok.NoArgsConstructor;
 import org.jboss.logging.Logger;
 
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.CompletionStage;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @ApplicationScoped
 public class SearchEngineIntegrationProcessor {
+
+    private final int TIMEOUT = 3;
+
+    private HttpRequest requestToSend;
+    private HttpClient httpClient;
 
     @Inject
     Logger logger;
@@ -67,6 +79,11 @@ public class SearchEngineIntegrationProcessor {
                     request.setSalesChannel(stock.getFilial());
                     request.setStatus(status);
 
+                    SearchEngineIntegrationClient client = new SearchEngineIntegrationClient();
+
+                    client.setUrl(integrationConfig.searchEngineUrl());
+                    client.setEngineIntegrationRequest(request);
+
                     if (value.getProduct().isChanged()) {
                         // escrever no log mensagem recebida
                         logger.info(">> Será executada integração completa <<");
@@ -107,10 +124,10 @@ public class SearchEngineIntegrationProcessor {
 
                         request.setImage(mapImage);
 
-                        // enviar
+                        // Enviar PUT
+                        CompletionStage<Long> result = client.alterar(product_id);
 
-
-                        // Registrar log do status recebido
+                        logger.info(">> Alteração retornou " + result.toString());
 
                     } else {
                         // TODO - POST
@@ -118,9 +135,9 @@ public class SearchEngineIntegrationProcessor {
                         logger.info(">> Será executado atualização do status do produto <<");
 
                         // Enviar
+                        CompletionStage<Long> result = client.salvar(product_id);
 
-                        // Registrar log do status recebido
-
+                        logger.info(">> Salvar retornou " + result.toString());
                     }
                 }
             }
@@ -138,5 +155,7 @@ public class SearchEngineIntegrationProcessor {
 
         return categoryRequest;
     }
+
+
 }
 
