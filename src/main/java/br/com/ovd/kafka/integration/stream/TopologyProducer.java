@@ -8,7 +8,6 @@ import br.com.ovd.kafka.integration.stream.transform.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.KStream;
@@ -49,18 +48,21 @@ public class TopologyProducer {
     public Topology buildTopology() {
         StreamsBuilder builder = new StreamsBuilder();
 
-        logger.info("-- INICIO --");
+        logger.info("-- INICIO [TopologyProducer] --");
 
         KStream<String, Product> productStream = builder
                 .stream(productSourceTopic, this.consumers.asProductConsumed())
-                .peek((k,v) -> logger.infof("IN >> Produto. Key: %s, value: %s", k, v))
+                .peek((k,v) -> logger.infof("IN >> Produto. Key: %s, value: %s", k.toString(), v.getDescricao()))
                 .groupByKey()
                 .reduce((k,v) -> productReducer.reduce(v,v),
                         Materialized.as("product-compared")).toStream();
 
+        logger.info("-- INICIO [TopologyProducer] productStream [" + productStream + "]");
+
         KTable<String, Product> productKTable =
                 productStream
                         .filter((k, v) -> v.isChanged())
+                        .peek((k,v) -> logger.info("---= v.isChanged() [" + v.isChanged() + "]"))
                         .toTable(Materialized.as("product-filtered"));
 
         KStream<String, StockList> stocksListKstream = builder
@@ -82,9 +84,12 @@ public class TopologyProducer {
         productWithStocksJoiner.join(product, stocksList)).toStream()
                         .toTable(Materialized.as("product-with-stocks-joined"));
 
-        KStream<String, ProductWithStocks> productWithStocksKStream = productWithStocks.toStream();
+        KStream<String, ProductWithStocks> productWithStocksKStream =
+                productWithStocks.toStream();
 
         productWithStocksKStream.foreach((key, value) -> integrationProcessor.process(key, value));
+
+        logger.info("-- FIM [TopologyProducer] --");
 
         return builder.build();
     }

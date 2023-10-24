@@ -3,17 +3,26 @@ package br.com.ovd.kafka.integration.stream.transform;
 import br.com.ovd.kafka.integration.model.source.Product;
 import br.com.ovd.kafka.integration.model.source.ProductSite;
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.EqualsAndHashCode;
+import jakarta.inject.Inject;
+import org.jboss.logging.Logger;
 
 import java.util.List;
-import java.util.Objects;
 
 public class ProductReducer {
 
+    @Inject
+    Logger logger;
+
     @ApplicationScoped
     public Product reduce(Product old, Product curr) {
+
+        logger.info("-- INICIO [Product->reduce] --");
+
         if (curr == null) {
             curr = new Product();
+
+            logger.info("-- FIM [Product->reduce] -- [curr null]");
+
             return curr;
         }
 
@@ -32,6 +41,8 @@ public class ProductReducer {
         } else {
             curr.setChanged(true);
         }
+
+        logger.info("-- FIM [Product->reduce] -- [curr " + curr.toString() +"]");
 
         return curr;
     }

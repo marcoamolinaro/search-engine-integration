@@ -1,17 +1,24 @@
 package br.com.ovd.kafka.integration.stream.transform;
 
-import br.com.ovd.kafka.integration.model.source.Product;
 import br.com.ovd.kafka.integration.model.source.Stock;
 import br.com.ovd.kafka.integration.model.source.StockList;
 import jakarta.enterprise.context.ApplicationScoped;
-
-import java.util.List;
+import jakarta.inject.Inject;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 public class StockListReducer {
+
+    @Inject
+    Logger logger;
+
     public StockList reduce(StockList old, StockList curr) {
+
+        logger.info("-- INICIO [StockListReducer->reduce] -- ");
+
         if (curr == null) {
             curr = new StockList();
+            logger.info("-- FIM [StockListReducer->reduce] -- curr [null]");
             return curr;
         }
 
@@ -35,6 +42,8 @@ public class StockListReducer {
                 stock.setChanged(true);
             }
          }
+
+        logger.info("-- FIM [StockListReducer->reduce] -- curr [" + curr.toString() + "]");
 
         return curr;
     }

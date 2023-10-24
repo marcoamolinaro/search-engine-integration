@@ -17,12 +17,12 @@ import lombok.NoArgsConstructor;
 import org.jboss.logging.Logger;
 
 import java.math.BigDecimal;
-import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletionStage;
 
 @Data
@@ -45,10 +45,12 @@ public class SearchEngineIntegrationProcessor {
     @ApplicationScoped
     public void process(String key, ProductWithStocks value) {
 
-        logger.info("searchEngineUrl = " + integrationConfig.searchEngineUrl());
+        logger.info("-- INICIO [SearchEngineIntegrationProcessor->process] -- [searchEngineUrl " +
+                integrationConfig.searchEngineUrl() +"]");
 
         for (SiteConfig siteConfig: integrationConfig.sites()) {
-            logger.info("Site " + siteConfig.site());
+            logger.info("-- [SearchEngineIntegrationProcessor->process] -- Site ["
+                    + siteConfig.site() + "]");
             for (ProductSite productSite : value.getProduct().getSites()) {
                 Product product = value.getProduct();
 
@@ -62,8 +64,9 @@ public class SearchEngineIntegrationProcessor {
                             .findFirst().get();
                 }
                 if (stock == null) {
-                    logger.info("Produto " + product.getModelo()
-                            + " não será integrado com a filial pois não consta na list de produtos.");
+                    logger.info("-- [SearchEngineIntegrationProcessor->process] Produto [" +
+                            product.getModelo()
+                            + "] não será integrado com a filial pois não consta na list de produtos.");
                 } else {
 
                     String product_id = key;
@@ -86,7 +89,7 @@ public class SearchEngineIntegrationProcessor {
 
                     if (value.getProduct().isChanged()) {
                         // escrever no log mensagem recebida
-                        logger.info(">> Será executada integração completa <<");
+                        logger.info("-- [SearchEngineIntegrationProcessor->process] - Será executada integração completa --");
 
                         // preparar mensagem
                         request.setName(value.getProduct().getDescricao());
@@ -127,21 +130,26 @@ public class SearchEngineIntegrationProcessor {
                         // Enviar PUT
                         CompletionStage<Long> result = client.alterar(product_id);
 
-                        logger.info(">> Alteração retornou " + result.toString());
+                        logger.info("-- [SearchEngineIntegrationProcessor->process] - Alteração retornou " + result.toString() + "] --");
 
                     } else {
                         // TODO - POST
                         // escrever no log mensagem recebida
-                        logger.info(">> Será executado atualização do status do produto <<");
+                        logger.info("-- [SearchEngineIntegrationProcessor->process] - Será executado atualização do status do produto --");
 
                         // Enviar
                         CompletionStage<Long> result = client.salvar(product_id);
 
-                        logger.info(">> Salvar retornou " + result.toString());
+                        logger.info("-- [SearchEngineIntegrationProcessor->process] - Salvar retornou [" + result.toString() + "] --");
                     }
                 }
             }
         }
+
+        logger.info("-- FIM [SearchEngineIntegrationProcessor->process] -- [searchEngineUrl " +
+                integrationConfig.searchEngineUrl() +"]");
+
+        return;
     }
 
     private CategoryRequest prepareCategoryRequest(ProductWithStocks value, Boolean hasSubGroup) {
