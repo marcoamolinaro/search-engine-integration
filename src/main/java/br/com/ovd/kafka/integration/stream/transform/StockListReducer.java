@@ -6,6 +6,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
+import java.util.Optional;
+
 @ApplicationScoped
 public class StockListReducer {
 
@@ -13,35 +15,56 @@ public class StockListReducer {
     Logger logger;
 
     public StockList reduce(StockList old, StockList curr) {
+        logger.infof("old.StockList [%s]", old.toString());
+        logger.infof("curr.StockList [%s]", curr.toString());
 
         logger.info("-- INICIO [StockListReducer->reduce] -- ");
 
-        if (curr == null) {
-            curr = new StockList();
+        if (curr.equals(new StockList())) {
             logger.info("-- FIM [StockListReducer->reduce] -- curr [null]");
+
             return curr;
         }
 
-        for (Stock stock: curr.getEstoques()) {
-            Stock oldStock = old.getEstoques().stream().findFirst().get();
-            if (stock == null || !stock.getStatus().equals(oldStock.getStatus())) {
-                stock.setChanged(true);
-            }
-        }
+        if (old.getEstoques() != null && curr.getEstoques() != null) {
+            for (Stock currStock: curr.getEstoques()) {
+                String currFilial = currStock.getFilial();
+                Optional<Stock> oldStockOpt = old.getEstoques().stream()
+                        .filter(s -> s.getFilial().equals(currFilial))
+                        .findFirst();
 
-        for (Stock stock: old.getEstoques()) {
-            Stock newStock = curr.getEstoques().stream().findFirst().get();
-            if (!stock.getFilial().equals(newStock.getFilial())) {
-                newStock.setFilial(stock.getFilial());
-                newStock.setChanged(true);
-            }
-        }
+                if (oldStockOpt.isPresent()) {
+                    Stock oldStock = oldStockOpt.get();
+                    String oldStatus = oldStock.getStatus() != null ? oldStock.getStatus().trim() : "";
+                    String currStatus = currStock.getStatus() != null ? currStock.getStatus().trim() : "";
 
-        for (Stock stock : curr.getEstoques()) {
-            if (curr.isChanged()) {
-                stock.setChanged(true);
+                    if (!currStatus.equalsIgnoreCase(oldStatus)) {
+                        currStock.setChanged(true);
+                    }
+                } else {
+                    currStock.setChanged(true);
+                }
             }
-         }
+
+            for (Stock oldStock : old.getEstoques()) {
+                String oldFilial = oldStock.getFilial();
+                Optional<Stock> newStockOpt = curr.getEstoques().stream()
+                        .filter(s -> s.getFilial().equals(oldFilial))
+                        .findFirst();
+
+                if (newStockOpt.isEmpty()) {
+                    oldStock.setChanged(true);
+                    logger.infof("caiu aqui! [%s]", oldStock);
+                    curr.getEstoques().add(oldStock);
+                }
+            }
+
+            for (Stock currStock : curr.getEstoques()) {
+                if (currStock.isChanged()) {
+                    curr.setChanged(true);
+                }
+             }
+        }
 
         logger.info("-- FIM [StockListReducer->reduce] -- curr [" + curr.toString() + "]");
 

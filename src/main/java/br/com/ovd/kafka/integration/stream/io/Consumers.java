@@ -4,9 +4,11 @@ import br.com.ovd.kafka.integration.model.source.Product;
 import br.com.ovd.kafka.integration.model.source.StockList;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import lombok.Data;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.jboss.logging.Logger;
 
+@Data
 @ApplicationScoped
 public class Consumers {
     @Inject
@@ -19,16 +21,21 @@ public class Consumers {
         logger.info("-- INICIO [Consumers->Consumed] --");
 
         Consumed<String, Product> productConsumed =
-                Consumed.with(serdes.stringKeyPorductSerde, serdes.productSerde)
+                Consumed.with(serdes.getStringKeyProductSerde(), serdes.getProductSerde())
                 .withName("product-consumer");
 
-        logger.info("-- FIM [Consumers->Consumed] productConsumed [" + productConsumed.withKeySerde(serdes.stringKeyPorductSerde).toString() + "] --");
+        logger.info("-- FIM [Consumers->Consumed] productConsumed [" + productConsumed.withKeySerde(serdes.stringKeyProductSerde).toString() + "] --");
 
         return productConsumed;
     }
 
     public Consumed<String, StockList> asStockListConsumed() {
-        return Consumed.with(serdes.stringKeyStockListSerde, serdes.stockLislSerde)
-                .withName("stockList-consumer");
+        Consumed<String, StockList> stockListConsumed =
+                Consumed.with(serdes.getStringKeyStockListSerde(), serdes.getStockListSerde())
+                    .withName("stockList-consumer");
+
+        logger.info("-- FIM [Consumers->Consumed] stockListConsumed [" + stockListConsumed.withKeySerde(serdes.stringKeyStockListSerde).toString() + "] --");
+
+        return stockListConsumed;
     }
 }

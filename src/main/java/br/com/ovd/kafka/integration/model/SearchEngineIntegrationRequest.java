@@ -1,7 +1,8 @@
 package br.com.ovd.kafka.integration.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -25,4 +26,13 @@ public class SearchEngineIntegrationRequest {
     private Map<String, Object> details;
     private List<CategoryRequest> categories;
     private Map<String, String> image;
+
+    public String toJson() {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            return "{}";
+        }
+    }
 }

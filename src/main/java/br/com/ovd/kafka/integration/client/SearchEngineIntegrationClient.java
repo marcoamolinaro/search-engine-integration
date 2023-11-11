@@ -10,7 +10,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -19,7 +19,6 @@ import java.util.concurrent.Executors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SearchEngineIntegrationClient {
-
     private String url;
     private SearchEngineIntegrationRequest engineIntegrationRequest;
 
@@ -30,29 +29,38 @@ public class SearchEngineIntegrationClient {
             .version(HttpClient.Version.HTTP_2)
             .build();
 
-    public CompletionStage<Long> alterar(String id) {
+    public CompletableFuture<String> alterar(String id) {
+        String LOG_PATH = "[SearchEngineIntegrationClient->alterar] ";
+
         return this.httpClient.sendAsync(
-                HttpRequest
-                        .newBuilder()
-                        .PUT(HttpRequest.BodyPublishers.ofString(engineIntegrationRequest.toString()))
-                        .uri(URI.create(url + "/" + id))
-                        .header("Accept", "application/json").build(),
-                HttpResponse.BodyHandlers.ofString())
+                        HttpRequest.newBuilder()
+                                .PUT(HttpRequest.BodyPublishers.ofString(engineIntegrationRequest.toJson()))
+                                .uri(URI.create(url))
+                                .header("accept", "text/plain")
+                                .header("content-type", "application/json")
+                                .build(),
+                        HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
-                .thenApply(Long::parseLong)
+                .thenApply(body -> LOG_PATH + "Sucesso ao criar ou atualizar produto na api de integração - " + body)
+                .exceptionally(ex -> LOG_PATH + "Erro ao criar ou atualizar produto - " + ex.getMessage())
                 .toCompletableFuture();
     }
 
-    public CompletionStage<Long> salvar(String id) {
+    public CompletableFuture<String> salvar(String id) {
+        String LOG_PATH = "[SearchEngineIntegrationClient->salvar] ";
+
         return this.httpClient.sendAsync(
                         HttpRequest
                                 .newBuilder()
-                                .POST(HttpRequest.BodyPublishers.ofString(engineIntegrationRequest.toString()))
+                                .POST(HttpRequest.BodyPublishers.ofString(engineIntegrationRequest.toJson()))
                                 .uri(URI.create(url + "/" + id))
-                                .header("Accept", "application/json").build(),
+                                .header("accept", "text/plain")
+                                .header("content-type", "application/json")
+                                .build(),
                         HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
-                .thenApply(Long::parseLong)
+                .thenApply(body -> LOG_PATH + "Sucesso ao atualizar produto na api de integração - " + body)
+                .exceptionally(ex -> LOG_PATH + "Erro ao atualizar produto - " + ex.getMessage())
                 .toCompletableFuture();
     }
 }

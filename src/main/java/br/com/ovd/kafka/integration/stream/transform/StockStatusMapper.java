@@ -12,26 +12,27 @@ public class StockStatusMapper {
     Logger logger;
 
     public StockList map(StockList source) {
+        logger.infof("-- INICIO [StockStatusMapper->map] -- [%s]", source);
 
-        logger.info("-- INICIO [StockStatusMapper->map] --");
-
-        StockList updated = new StockList();
+        if (source == null) {
+            logger.info("-- FIM [StockStatusMapper->map] -- [curr new StockList()]");
+            return new StockList();
+        }
 
         for (Stock s : source.getEstoques()) {
-            if (s.getStatus().equalsIgnoreCase("INATIVO")) {
+            if (s.getStatus().trim().equalsIgnoreCase("INATIVO")) {
                 s.setStatus("removed");
             } else {
                 s.setStatus("available");
             }
 
-            if (s.getStatus().equalsIgnoreCase("available")
-                    && s.getEstoque().intValue() == 0) {
+            if (s.getStatus().equals("available") && s.getEstoque().intValue() == 0) {
                 s.setStatus("unavailable");
             }
         }
 
-        logger.info("-- FIM [StockStatusMapper->map] updated [" + updated.toString() + "--");
+        logger.info("-- FIM [StockStatusMapper->map] updated [" + source.toString() + "--");
 
-        return updated;
+        return source;
     }
 }
