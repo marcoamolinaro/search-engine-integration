@@ -5,7 +5,7 @@ services:
     hostname: zookeeper-ovd
     container_name: zookeeper-ovd
     ports:
-    - "2181:2181"
+      - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -15,10 +15,10 @@ services:
     hostname: kafka-ovd
     container_name: kafka-ovd
     depends_on:
-    - zookeeper-ovd
+      - zookeeper-ovd
     ports:
-    - "32000:32000"
-    - "9092:9092"
+      - "32000:32000"
+      - "9092:9092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper-ovd:2181'
@@ -35,9 +35,9 @@ services:
     image: streamthoughts/kafka-connect-file-pulse:2.3.0
     container_name: connect-ovd
     depends_on:
-    - kafka-ovd
+      - kafka-ovd
     ports:
-    - "8083:8083"
+      - "8083:8083"
     environment:
       CONNECT_BOOTSTRAP_SERVERS: 'kafka-ovd:9092'
       CONNECT_REST_ADVERTISED_HOST_NAME: connect-ovd
@@ -58,7 +58,7 @@ services:
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components/"
       CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO"
     volumes:
-    - c:/dev/tmp/data:/var/share/kafka
+      - c:/dev/tmp/data:/var/share/kafka
     
   
   kafka-ui-ovd:
