@@ -2,6 +2,8 @@ package br.com.ovd.kafka.integration.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +15,7 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class SearchEngineIntegrationRequest {
     private String apiKey;
     private String secretKey;
@@ -25,7 +28,7 @@ public class SearchEngineIntegrationRequest {
     private String brand;
     private Map<String, Object> details;
     private List<CategoryRequest> categories;
-    private Map<String, String> image;
+    private Map<String, String> images;
 
     public String toJson() {
         try {

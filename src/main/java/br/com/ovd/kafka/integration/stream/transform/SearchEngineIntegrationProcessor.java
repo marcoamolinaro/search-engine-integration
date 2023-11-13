@@ -127,8 +127,6 @@ public class SearchEngineIntegrationProcessor {
         request.setUrl("produtos/" + productId);
         if (!(safeString(product.getAplicacoes()).isEmpty()) && !(safeString(product.getDestaques()).isEmpty())) {
             request.setDescription(product.getAplicacoes() + " " + product.getDestaques());
-        } else {
-            request.setDescription("");
         }
 
         List<CategoryRequest> categoryRequestList = new ArrayList<>();
@@ -166,7 +164,7 @@ public class SearchEngineIntegrationProcessor {
 
         Map<String, String> mapImage = new HashMap<>();
         mapImage.put("default", productId + "_principal.jpg");
-        request.setImage(mapImage);
+        request.setImages(mapImage);
 
         return request;
     }

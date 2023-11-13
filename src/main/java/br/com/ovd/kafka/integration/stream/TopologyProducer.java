@@ -63,7 +63,7 @@ public class TopologyProducer {
 
         KStream<String, Product> productStream = builder
                 .stream(productSourceTopic, this.consumers.asProductConsumed())
-                .peek((k,v) -> logger.infof("IN >> Produto. Key: %s, value: %s", k, v))
+                .peek((k, v) -> logger.infof("IN >> Produto. Key: %s, value: %s", k, v))
                 .map((k, v) -> KeyValue.pair(k, productMapper.map(v)))
                 .groupByKey(Grouped.with(serdes.getStringKeyProductSerde(), serdes.getProductSerde()))
                 .reduce((prevProduct, currProduct) -> productReducer.reduce(prevProduct, currProduct),
@@ -74,15 +74,15 @@ public class TopologyProducer {
         logger.info("-- INICIO [TopologyProducer] productStream [" + productStream + "]");
 
         KTable<String, Product> filteredProductTable = productStream
-                .filter((k,v) -> v.isChanged())
-                .peek((k,v) -> logger.info("OUT >> v.isChanged() [" + v.isChanged() + "]"))
+                .filter((k, v) -> v.isChanged())
+                .peek((k, v) -> logger.info("OUT >> v.isChanged() [" + v.isChanged() + "]"))
                 .toTable(materialize.asStateStore("product-filtered", serdes.getString(), serdes.getProductSerde()));
 
 
         KStream<String, StockList> stocksListStream = builder
                 .stream(stocksSourceTopic, this.consumers.asStockListConsumed())
-                .peek((k,v) -> logger.infof("IN >> StockList. Key %s, Value %s", k, v))
-                .map((k,v) -> KeyValue.pair(k, stockStatusMapper.map(v)))
+                .peek((k, v) -> logger.infof("IN >> StockList. Key %s, Value %s", k, v))
+                .map((k, v) -> KeyValue.pair(k, stockStatusMapper.map(v)))
                 .groupByKey(Grouped.with(serdes.getStringKeyStockListSerde(), serdes.getStockListSerde()))
                 .reduce((prevStock, currStock) -> stockListReducer.reduce(prevStock, currStock),
                         materialize.asStateStore("stocks-compared", serdes.getString(), serdes.getStockListSerde())
@@ -90,9 +90,9 @@ public class TopologyProducer {
                 .toStream();
 
         KTable<String, StockList> filteredStocksTable = stocksListStream
-                .peek((k,v) -> logger.infof("IN [reduced & map] >> StockList. Key %s, Value %s", k, v))
-                .filter((k,v) -> v.isChanged())
-                .peek((k,v) -> logger.infof("OUT [reduced & map] >> StockList. Key %s, Value %s", k, v))
+                .peek((k, v) -> logger.infof("IN [reduced & map] >> StockList. Key %s, Value %s", k, v))
+                .filter((k, v) -> v.isChanged())
+                .peek((k, v) -> logger.infof("OUT [reduced & map] >> StockList. Key %s, Value %s", k, v))
                 .toTable(materialize.asStateStore("stocks-filtered", serdes.getString(), serdes.getStockListSerde()));
 
         ValueJoiner<Product, StockList, ProductWithStocks> valueJoiner = (left, right) -> {
@@ -102,7 +102,7 @@ public class TopologyProducer {
         KTable<String, ProductWithStocks> productWithStocks = filteredProductTable
                 .join(filteredStocksTable, valueJoiner)
                 .toStream()
-                .peek((k,v) -> logger.infof("OUT [productWithStocks] >> Join <PRODUCT, STOCKSLIST>. Key %s, Value %s", k, v))
+                .peek((k, v) -> logger.infof("OUT [productWithStocks] >> Join <PRODUCT, STOCKSLIST>. Key %s, Value %s", k, v))
                 .toTable(materialize.asStateStore("product-with-stocks-joined", serdes.getString(), serdes.getProductWithStocksSerde()));
 
         productWithStocks.toStream().foreach((key, value) -> integrationProcessor.process(key, value));
