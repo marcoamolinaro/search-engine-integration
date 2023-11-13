@@ -205,8 +205,6 @@ public class SearchEngineIntegrationProcessor {
 
         CompletionStage<String> result = client.alterar(id);
         result.thenAcceptAsync(logger::info);
-
-        logger.infof("-- %s - Alteração retornou [%s] --", LOG_PATH, result.toString());
     }
 
     private void updateProduct(String id, SearchEngineIntegrationClient client) {
@@ -216,8 +214,6 @@ public class SearchEngineIntegrationProcessor {
 
         CompletionStage<String> result = client.salvar(id);
         result.thenAcceptAsync(logger::info);
-
-        logger.infof("-- %s - Salvar retornou [%s] --", LOG_PATH, result.toString());
     }
 }
 

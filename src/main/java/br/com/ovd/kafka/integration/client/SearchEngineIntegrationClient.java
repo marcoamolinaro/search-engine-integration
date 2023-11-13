@@ -40,8 +40,14 @@ public class SearchEngineIntegrationClient {
                                 .header("content-type", "application/json")
                                 .build(),
                         HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenApply(body -> LOG_PATH + "Sucesso ao criar ou atualizar produto na api de integração - " + body)
+                .thenApply(response -> {
+                    if (response.statusCode() == 204) {
+                        return LOG_PATH + "Sucesso ao criar ou atualizar produto na api de integração - " + response.body();
+                    }
+
+                    return LOG_PATH + "Houve um erro ao criar ou atualizar o produto: " +
+                            "status -> " + response.statusCode() + "Body: " + response.body();
+                })
                 .exceptionally(ex -> LOG_PATH + "Erro ao criar ou atualizar produto - " + ex.getMessage())
                 .toCompletableFuture();
     }
@@ -58,8 +64,14 @@ public class SearchEngineIntegrationClient {
                                 .header("content-type", "application/json")
                                 .build(),
                         HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenApply(body -> LOG_PATH + "Sucesso ao atualizar produto na api de integração - " + body)
+                .thenApply(response -> {
+                    if (response.statusCode() == 204) {
+                        return LOG_PATH + "Sucesso ao atualizar produto na api de integração - " + response.body();
+                    }
+
+                    return LOG_PATH + "Houve um erro ao atualizar o produto: " +
+                            "status -> " + response.statusCode() + "Body: " + response.body();
+                })
                 .exceptionally(ex -> LOG_PATH + "Erro ao atualizar produto - " + ex.getMessage())
                 .toCompletableFuture();
     }
